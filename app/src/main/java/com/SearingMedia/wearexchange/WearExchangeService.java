@@ -6,6 +6,8 @@ import com.google.android.gms.wearable.WearableListenerService;
 
 import java.util.List;
 
+import de.greenrobot.event.EventBus;
+
 public abstract class WearExchangeService extends WearableListenerService implements MessageApi.MessageListener {
     // Variables
     private List<String> knownMessagePathList;
@@ -23,15 +25,17 @@ public abstract class WearExchangeService extends WearableListenerService implem
 
     /**
      * A list of paths that should be filtered (received)
+     *
      * @return
      */
     protected abstract List<String> getKnownMessagePathList();
 
     /**
      * When a local broadcast cannot be sent, the implementer can send an intent
+     *
      * @param messageEvent
      */
-    protected abstract void sendNewIntentMessage(MessageEvent messageEvent);
+    protected abstract void sendIntentMessage(MessageEvent messageEvent);
 
     // ****************************
     // Implementations
@@ -39,19 +43,25 @@ public abstract class WearExchangeService extends WearableListenerService implem
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
         // Guard Clause
-        if(knownMessagePathList == null || knownMessagePathList.isEmpty()) {
+        if (knownMessagePathList == null || knownMessagePathList.isEmpty()) {
             return;
         }
 
-        for(String knownMessagePath : knownMessagePathList) {
+        for (String knownMessagePath : knownMessagePathList) {
             if (messageEvent.getPath().equals(knownMessagePath)) {
                 // Try to send a local broadcast, if it fails, send an intent
-                if(!WearExchangeBroadcaster.sendMessageBroadcast(messageEvent, this)) {
-                    sendNewIntentMessage(messageEvent);
+                if (canSendEventBusMessage()) {
+                    EventBus.getDefault().post(new WearExchangeMessageEvent(messageEvent));
+                } else {
+                    sendIntentMessage(messageEvent);
                 }
 
                 break;
             }
         }
+    }
+
+    private boolean canSendEventBusMessage() {
+        return EventBus.getDefault().hasSubscriberForEvent(WearExchangeMessageEvent.class);
     }
 }

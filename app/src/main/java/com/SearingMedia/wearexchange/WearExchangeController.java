@@ -1,11 +1,6 @@
 package com.SearingMedia.wearexchange;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.MessageApi;
@@ -13,6 +8,8 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
+
+import de.greenrobot.event.EventBus;
 
 public class WearExchangeController implements GoogleApiClient.ConnectionCallbacks, MessageApi.MessageListener {
     // Variables
@@ -31,13 +28,13 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     // **********************************
     public void create() {
         googleApiClient = new GoogleApiClient.Builder(wearExchangeInterface.getWearContext())
-                .addApi( Wearable.API )
+                .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .build();
 
         connect();
 
-        LocalBroadcastManager.getInstance(wearExchangeInterface.getWearContext()).registerReceiver(broadcastReceiver, new IntentFilter(WearExchangeBroadcaster.WEAR_EXCHANGE_BROADCAST));
+        EventBus.getDefault().register(this);
     }
 
     public void connect() {
@@ -54,16 +51,16 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
                 googleApiClient.disconnect();
             }
         }
-
-        LocalBroadcastManager.getInstance(wearExchangeInterface.getWearContext()).unregisterReceiver(broadcastReceiver);
     }
 
     public void destroy() {
         disconnect();
 
-        if(googleApiClient != null) {
+        if (googleApiClient != null) {
             googleApiClient.unregisterConnectionCallbacks(this);
         }
+
+        EventBus.getDefault().unregister(this);
     }
 
     // **********************************
@@ -92,7 +89,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     // **********************************
     @Override
     public void onMessageReceived(final MessageEvent messageEvent) {
-        wearExchangeInterface.messageReceived(messageEvent);
+        // Unhandled
     }
 
     @Override
@@ -110,15 +107,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
         }
     }
 
-    // **********************************
-    // Inner Declarations
-    // **********************************
-    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if(intent.getAction().equals(WearExchangeBroadcaster.WEAR_EXCHANGE_BROADCAST)) {
-                onMessageReceived((MessageEvent) intent.getSerializableExtra(WearExchangeBroadcaster.BROADCAST_MESSAGE_KEY));
-            }
-        }
-    };
+    public void onEvent(WearExchangeMessageEvent wearExchangeMessageEvent) {
+        wearExchangeInterface.messageReceived(wearExchangeMessageEvent);
+    }
 }
