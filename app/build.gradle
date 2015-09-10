@@ -1,5 +1,31 @@
 apply plugin: 'com.android.library'
 
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'wearexchange'
+
+    publishedGroupId = 'com.SearingMedia.wearexchange'
+    libraryName = 'WearExchange'
+    artifact = 'wearexchange'
+
+    libraryDescription = 'A library to help simplify two way communication between Android Wear and Mobile'
+
+    siteUrl = 'https://github.com/RileyGB/WearExchange'
+    gitUrl = 'https://github.com/RileyGB/WearExchange.git'
+
+    libraryVersion = '0.1.0'
+
+    developerId = 'rackerman'
+    developerName = 'Riley Ackerman'
+    developerEmail = 'r.ackerman@searingmedia.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
+
 android {
     compileSdkVersion 23
     buildToolsVersion "22.0.1"
@@ -23,3 +49,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-wearable:7.8.0'
     compile 'de.greenrobot:eventbus:2.4.0'
 }
+
+
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
