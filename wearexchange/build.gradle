@@ -14,7 +14,7 @@ ext {
     siteUrl = 'https://github.com/RileyGB/WearExchange'
     gitUrl = 'https://github.com/RileyGB/WearExchange.git'
 
-    libraryVersion = '0.1.1'
+    libraryVersion = '0.1.2'
 
     developerId = 'rackerman'
     developerName = 'Riley Ackerman'
@@ -24,7 +24,6 @@ ext {
     licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
     allLicenses = ["Apache-2.0"]
 }
-
 
 android {
     compileSdkVersion 23

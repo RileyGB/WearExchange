@@ -38,7 +38,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     }
 
     public void connect() {
-        if (!isConnected()) {
+        if (!isConnected() && !isConnecting()) {
             googleApiClient.connect();
         }
     }
@@ -47,7 +47,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
         if (googleApiClient != null) {
             Wearable.MessageApi.removeListener(googleApiClient, this);
 
-            if (isConnected()) {
+            if (isConnected() || isConnecting()) {
                 googleApiClient.disconnect();
             }
         }
@@ -80,8 +80,11 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     }
 
     public boolean isConnected() {
-        return googleApiClient != null &&
-                (googleApiClient.isConnected() || googleApiClient.isConnecting());
+        return googleApiClient != null && googleApiClient.isConnected();
+    }
+
+    public boolean isConnecting() {
+        return googleApiClient != null && googleApiClient.isConnecting();
     }
 
     // **********************************
