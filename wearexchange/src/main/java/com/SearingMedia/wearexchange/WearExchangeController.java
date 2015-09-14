@@ -74,6 +74,10 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
                 for (Node node : nodes.getNodes()) {
                     MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
                             googleApiClient, node.getId(), path, text.getBytes()).await();
+
+                    if(isConnected()) {
+                        wearExchangeInterface.wearConnectionMade(node.getId());
+                    }
                 }
             }
         }).start();
