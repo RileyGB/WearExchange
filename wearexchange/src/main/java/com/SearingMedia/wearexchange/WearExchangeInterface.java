@@ -7,7 +7,7 @@ import com.google.android.gms.wearable.MessageEvent;
 public interface WearExchangeInterface {
     void messageReceived(MessageEvent messageEvent);
 
-    void wearConnectionMade(String nodeId);
+    void wearConnectionMade(int sessionId);
 
     void wearConnectionLost(int cause);
 
