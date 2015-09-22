@@ -1,5 +1,7 @@
 package com.SearingMedia.wearexchange;
 
+import android.util.Log;
+
 import com.google.android.gms.wearable.MessageEvent;
 
 import java.io.Serializable;
@@ -16,6 +18,11 @@ public class WearExchangeMessageEvent implements Serializable, MessageEvent {
     // Constructor
     // ******************************
     public WearExchangeMessageEvent(MessageEvent messageEvent) {
+        if(messageEvent == null) {
+            Log.e(getClass().getSimpleName(), "MessageEvent is null in constructor");
+            return;
+        }
+
         requestId = messageEvent.getRequestId();
         path = messageEvent.getPath();
         data = messageEvent.getData();

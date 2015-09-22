@@ -1,6 +1,7 @@
 package com.SearingMedia.wearexchange;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.MessageApi;
@@ -11,7 +12,7 @@ import com.google.android.gms.wearable.Wearable;
 
 import de.greenrobot.event.EventBus;
 
-public class WearExchangeController implements GoogleApiClient.ConnectionCallbacks, MessageApi.MessageListener {
+public class WearExchangeController implements GoogleApiClient.ConnectionCallbacks, MessageApi.MessageListener, NodeApi.NodeListener {
     // Variables
     private WearExchangeInterface wearExchangeInterface;
     private GoogleApiClient googleApiClient;
@@ -34,7 +35,9 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
 
         connect();
 
-        EventBus.getDefault().register(this);
+        if(!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
     public void connect() {
@@ -46,6 +49,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     public void disconnect() {
         if (googleApiClient != null) {
             Wearable.MessageApi.removeListener(googleApiClient, this);
+            Wearable.NodeApi.removeListener(googleApiClient, this);
 
             if (isConnected() || isConnecting()) {
                 googleApiClient.disconnect();
@@ -60,13 +64,20 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
             googleApiClient.unregisterConnectionCallbacks(this);
         }
 
-        EventBus.getDefault().unregister(this);
+        if(EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
     }
 
     // **********************************
     // Helpers
     // **********************************
     public void sendMessage(final String path, final String text) {
+        if(text == null) {
+            Log.e(getClass().getSimpleName(), "Null text, could not send message");
+            return;
+        }
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -98,23 +109,45 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     @Override
     public void onConnected(Bundle bundle) {
         Wearable.MessageApi.addListener(googleApiClient, this);
-
-        if(isConnected()) {
-            wearExchangeInterface.wearConnectionMade(googleApiClient.getSessionId());
-        }
+        Wearable.NodeApi.addListener(googleApiClient, this);
     }
 
     @Override
     public void onConnectionSuspended(int cause) {
-        switch (cause) {
-            case CAUSE_NETWORK_LOST:
-            case CAUSE_SERVICE_DISCONNECTED:
-                wearExchangeInterface.wearConnectionLost(cause);
-                break;
+
+    }
+
+    @Override
+    public void onPeerConnected(Node node) {
+        // Guard Clause
+        if(wearExchangeInterface == null || googleApiClient == null || node == null) {
+            return;
+        }
+
+        if(isConnected()) {
+            wearExchangeInterface.wearConnectionMade(googleApiClient.getSessionId(), node.getId());
         }
     }
 
+    @Override
+    public void onPeerDisconnected(Node node) {
+        // Guard Clause
+        if(wearExchangeInterface == null || googleApiClient == null || node == null) {
+            return;
+        }
+
+        wearExchangeInterface.wearConnectionLost(googleApiClient.getSessionId(), node.getId());
+    }
+
+    // **********************************
+    // EventBus Events
+    // **********************************
     public void onEvent(WearExchangeMessageEvent wearExchangeMessageEvent) {
+        // Guard Clause
+        if(wearExchangeInterface == null) {
+            return;
+        }
+
         wearExchangeInterface.messageReceived(wearExchangeMessageEvent);
     }
 }

@@ -1,5 +1,7 @@
 package com.SearingMedia.wearexchange;
 
+import android.util.Log;
+
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
@@ -42,8 +44,13 @@ public abstract class WearExchangeService extends WearableListenerService implem
     // ****************************
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
-        // Guard Clause
+        // Guard Clauses
         if (knownMessagePathList == null || knownMessagePathList.isEmpty()) {
+            Log.e(getClass().getSimpleName(), "KnownMessagePathList is empty/null");
+            return;
+        }
+        else if (messageEvent == null || messageEvent.getPath() == null) {
+            Log.e(getClass().getSimpleName(), "MessageEvent or its path is null");
             return;
         }
 
