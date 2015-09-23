@@ -72,22 +72,31 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     // **********************************
     // Helpers
     // **********************************
-    public void sendMessage(final String path, final String text) {
-        if(text == null) {
+    public void sendMessage(final String path, final String data) {
+        if(data == null) {
             Log.e(getClass().getSimpleName(), "Null text, could not send message");
             return;
         }
 
-        new Thread(new Runnable() {
+        final byte[] messageBytes = data.getBytes();
+
+        Thread sendMessageThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
-                for (Node node : nodes.getNodes()) {
-                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
-                            googleApiClient, node.getId(), path, text.getBytes()).await();
+                try {
+                    NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
+                    for (Node node : nodes.getNodes()) {
+                        Wearable.MessageApi.sendMessage(googleApiClient, node.getId(), path, messageBytes).await();
+                    }
+                }
+                catch(OutOfMemoryError e) {
+                    // Necessary for some Samsung devices
+                    Log.e(getClass().getSimpleName(), "Out of memory error while sending message");
                 }
             }
-        }).start();
+        });
+
+        sendMessageThread.start();
     }
 
     public boolean isConnected() {
