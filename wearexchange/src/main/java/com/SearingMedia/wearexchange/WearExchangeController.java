@@ -10,18 +10,24 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 import de.greenrobot.event.EventBus;
 
 public class WearExchangeController implements GoogleApiClient.ConnectionCallbacks, MessageApi.MessageListener, NodeApi.NodeListener {
     // Variables
     private WearExchangeInterface wearExchangeInterface;
     private GoogleApiClient googleApiClient;
+    private ScheduledExecutorService scheduledExecutorService;
 
     // **********************************
     // Constructors
     // **********************************
     public WearExchangeController(WearExchangeInterface wearExchangeInterface) {
         this.wearExchangeInterface = wearExchangeInterface;
+
+        scheduledExecutorService = Executors.newScheduledThreadPool(4);
     }
 
     // **********************************
@@ -80,15 +86,20 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
 
         final byte[] messageBytes = data.getBytes();
 
-        try {
-            NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
-            for (Node node : nodes.getNodes()) {
-                Wearable.MessageApi.sendMessage(googleApiClient, node.getId(), path, messageBytes).await();
+        scheduledExecutorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
+                    for (Node node : nodes.getNodes()) {
+                        Wearable.MessageApi.sendMessage(googleApiClient, node.getId(), path, messageBytes).await();
+                    }
+                } catch (OutOfMemoryError e) {
+                    // Necessary for some Samsung devices
+                    Log.e(getClass().getSimpleName(), "Out of memory error while sending message");
+                }
             }
-        } catch (OutOfMemoryError e) {
-            // Necessary for some Samsung devices
-            Log.e(getClass().getSimpleName(), "Out of memory error while sending message");
-        }
+        });
     }
 
     public boolean isConnected() {
