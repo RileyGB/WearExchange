@@ -35,7 +35,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
 
         connect();
 
-        if(!EventBus.getDefault().isRegistered(this)) {
+        if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
     }
@@ -64,7 +64,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
             googleApiClient.unregisterConnectionCallbacks(this);
         }
 
-        if(EventBus.getDefault().isRegistered(this)) {
+        if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this);
         }
     }
@@ -73,30 +73,22 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     // Helpers
     // **********************************
     public void sendMessage(final String path, final String data) {
-        if(data == null) {
+        if (data == null) {
             Log.e(getClass().getSimpleName(), "Null text, could not send message");
             return;
         }
 
         final byte[] messageBytes = data.getBytes();
 
-        Thread sendMessageThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
-                    for (Node node : nodes.getNodes()) {
-                        Wearable.MessageApi.sendMessage(googleApiClient, node.getId(), path, messageBytes).await();
-                    }
-                }
-                catch(OutOfMemoryError e) {
-                    // Necessary for some Samsung devices
-                    Log.e(getClass().getSimpleName(), "Out of memory error while sending message");
-                }
+        try {
+            NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
+            for (Node node : nodes.getNodes()) {
+                Wearable.MessageApi.sendMessage(googleApiClient, node.getId(), path, messageBytes).await();
             }
-        });
-
-        sendMessageThread.start();
+        } catch (OutOfMemoryError e) {
+            // Necessary for some Samsung devices
+            Log.e(getClass().getSimpleName(), "Out of memory error while sending message");
+        }
     }
 
     public boolean isConnected() {
@@ -129,11 +121,11 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     @Override
     public void onPeerConnected(Node node) {
         // Guard Clause
-        if(wearExchangeInterface == null || googleApiClient == null || node == null) {
+        if (wearExchangeInterface == null || googleApiClient == null || node == null) {
             return;
         }
 
-        if(isConnected()) {
+        if (isConnected()) {
             wearExchangeInterface.wearConnectionMade(googleApiClient.getSessionId(), node.getId());
         }
     }
@@ -141,7 +133,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     @Override
     public void onPeerDisconnected(Node node) {
         // Guard Clause
-        if(wearExchangeInterface == null || googleApiClient == null || node == null) {
+        if (wearExchangeInterface == null || googleApiClient == null || node == null) {
             return;
         }
 
@@ -153,7 +145,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     // **********************************
     public void onEvent(WearExchangeMessageEvent wearExchangeMessageEvent) {
         // Guard Clause
-        if(wearExchangeInterface == null) {
+        if (wearExchangeInterface == null) {
             return;
         }
 

@@ -14,7 +14,7 @@ ext {
     siteUrl = 'https://github.com/RileyGB/WearExchange'
     gitUrl = 'https://github.com/RileyGB/WearExchange.git'
 
-    libraryVersion = '0.2.0'
+    libraryVersion = '0.2.1'
 
     developerId = 'rackerman'
     developerName = 'Riley Ackerman'
@@ -27,7 +27,7 @@ ext {
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "22.0.1"
+    buildToolsVersion "23.0.0"
 
     defaultConfig {
         minSdkVersion 19
@@ -42,6 +42,7 @@ android {
 }
 
 dependencies {
+    compile 'com.android.support:support-v4:23.0.1'
     compile 'com.google.android.gms:play-services-wearable:7.8.0'
     compile 'de.greenrobot:eventbus:2.4.0'
 }
