@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.CapabilityApi;
+import com.google.android.gms.wearable.CapabilityInfo;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
@@ -15,7 +17,10 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import de.greenrobot.event.EventBus;
 
-public class WearExchangeController implements GoogleApiClient.ConnectionCallbacks, MessageApi.MessageListener, NodeApi.NodeListener {
+public class WearExchangeController implements GoogleApiClient.ConnectionCallbacks, MessageApi.MessageListener, CapabilityApi.CapabilityListener {
+    // Constants
+    public static final String NO_NODE_ID = "none";
+
     // Variables
     private WearExchangeInterface wearExchangeInterface;
     private GoogleApiClient googleApiClient;
@@ -55,7 +60,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     public void disconnect() {
         if (googleApiClient != null) {
             Wearable.MessageApi.removeListener(googleApiClient, this);
-            Wearable.NodeApi.removeListener(googleApiClient, this);
+            Wearable.CapabilityApi.removeListener(googleApiClient, this);
 
             if (isConnected() || isConnecting()) {
                 googleApiClient.disconnect();
@@ -121,7 +126,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     @Override
     public void onConnected(Bundle bundle) {
         Wearable.MessageApi.addListener(googleApiClient, this);
-        Wearable.NodeApi.addListener(googleApiClient, this);
+        Wearable.CapabilityApi.addCapabilityListener(googleApiClient, this, "");
     }
 
     @Override
@@ -130,27 +135,27 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     }
 
     @Override
-    public void onPeerConnected(Node node) {
+    public void onCapabilityChanged(CapabilityInfo capabilityInfo) {
         // Guard Clause
-        if (wearExchangeInterface == null || googleApiClient == null || node == null) {
+        if(capabilityInfo == null || capabilityInfo.getNodes() == null) {
+            wearExchangeInterface.wearConnectionLost(NO_NODE_ID);
             return;
         }
 
-        if (isConnected()) {
-            wearExchangeInterface.wearConnectionMade(googleApiClient.getSessionId(), node.getId());
+        if(capabilityInfo.getNodes().size() > 0) {
+            for (Node node: capabilityInfo.getNodes()) {
+                if(node.isNearby()) {
+                    wearExchangeInterface.wearConnectionMade(node.getId());
+                }
+                else {
+                    wearExchangeInterface.wearConnectionLost(node.getId());
+                }
+            }
+        }
+        else {
+            wearExchangeInterface.wearConnectionLost(NO_NODE_ID);
         }
     }
-
-    @Override
-    public void onPeerDisconnected(Node node) {
-        // Guard Clause
-        if (wearExchangeInterface == null || googleApiClient == null || node == null) {
-            return;
-        }
-
-        wearExchangeInterface.wearConnectionLost(googleApiClient.getSessionId(), node.getId());
-    }
-
     // **********************************
     // EventBus Events
     // **********************************
@@ -162,4 +167,6 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
 
         wearExchangeInterface.messageReceived(wearExchangeMessageEvent);
     }
+
+
 }
