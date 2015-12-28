@@ -14,7 +14,7 @@ ext {
     siteUrl = 'https://github.com/RileyGB/WearExchange'
     gitUrl = 'https://github.com/RileyGB/WearExchange.git'
 
-    libraryVersion = '0.3.2'
+    libraryVersion = '0.3.3'
 
     developerId = 'rackerman'
     developerName = 'Riley Ackerman'

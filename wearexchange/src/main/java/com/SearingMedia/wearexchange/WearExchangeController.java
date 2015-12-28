@@ -126,12 +126,13 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     @Override
     public void onConnected(Bundle bundle) {
         Wearable.MessageApi.addListener(googleApiClient, this);
-        Wearable.CapabilityApi.addCapabilityListener(googleApiClient, this, "");
+        Wearable.CapabilityApi.addCapabilityListener(googleApiClient, this, CapabilityApi.ACTION_CAPABILITY_CHANGED);
+        wearExchangeInterface.wearConnectionMade(NO_NODE_ID);
     }
 
     @Override
     public void onConnectionSuspended(int cause) {
-
+        wearExchangeInterface.wearConnectionLost(NO_NODE_ID);
     }
 
     @Override
