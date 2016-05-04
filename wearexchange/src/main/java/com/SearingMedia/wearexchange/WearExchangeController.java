@@ -1,5 +1,6 @@
 package com.SearingMedia.wearexchange;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -15,7 +16,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import de.greenrobot.event.EventBus;
 
-public class WearExchangeController implements GoogleApiClient.ConnectionCallbacks, MessageApi.MessageListener, NodeApi.NodeListener {
+public class WearExchangeController implements GoogleApiClient.ConnectionCallbacks, MessageApi.MessageListener {
     // Constants
     public static final String NO_NODE_ID = "none";
 
@@ -58,7 +59,6 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     public void disconnect() {
         if (googleApiClient != null) {
             Wearable.MessageApi.removeListener(googleApiClient, this);
-            Wearable.NodeApi.removeListener(googleApiClient, this);
 
             if (isConnected() || isConnecting()) {
                 googleApiClient.disconnect();
@@ -124,34 +124,12 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
     @Override
     public void onConnected(Bundle bundle) {
         Wearable.MessageApi.addListener(googleApiClient, this);
-        Wearable.NodeApi.addListener(googleApiClient, this);
+        new VerifyWearableConnectedTask().execute();
     }
 
     @Override
     public void onConnectionSuspended(int cause) {
        // Do nothing
-    }
-
-    @Override
-    public void onPeerConnected(Node node) {
-        // Guard Clause
-        if (wearExchangeInterface == null || googleApiClient == null || node == null) {
-            return;
-        }
-
-        if (isConnected()) {
-            wearExchangeInterface.wearConnectionMade(node.getId());
-        }
-    }
-
-    @Override
-    public void onPeerDisconnected(Node node) {
-        // Guard Clause
-        if (wearExchangeInterface == null || googleApiClient == null || node == null) {
-            return;
-        }
-
-        wearExchangeInterface.wearConnectionLost(node.getId());
     }
 
     // **********************************
@@ -164,5 +142,30 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
         }
 
         wearExchangeInterface.messageReceived(wearExchangeMessageEvent);
+    }
+
+    // **********************************
+    // Async Tasks
+    // **********************************
+    private class VerifyWearableConnectedTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            NodeApi.GetConnectedNodesResult nodes =
+                    Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
+
+            if (wearExchangeInterface == null || googleApiClient == null) {
+                return null;
+            }
+
+            if (nodes != null && !nodes.getNodes().isEmpty()) {
+                wearExchangeInterface.wearConnectionMade(nodes.getNodes().get(0).getId());
+            }
+            else {
+                wearExchangeInterface.wearConnectionLost("");
+            }
+
+            return null;
+        }
     }
 }
