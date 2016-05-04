@@ -95,7 +95,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
                 try {
                     NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
                     for (Node node : nodes.getNodes()) {
-                        Wearable.MessageApi.sendMessage(googleApiClient, node.getId(), path, messageBytes).await();
+                        Wearable.MessageApi.sendMessage(googleApiClient, node.getId(), path, messageBytes);
                     }
                 } catch (OutOfMemoryError e) {
                     // Necessary for some Samsung devices
@@ -162,7 +162,7 @@ public class WearExchangeController implements GoogleApiClient.ConnectionCallbac
                 wearExchangeInterface.wearConnectionMade(nodes.getNodes().get(0).getId());
             }
             else {
-                wearExchangeInterface.wearConnectionLost("");
+                wearExchangeInterface.wearConnectionLost(NO_NODE_ID);
             }
 
             return null;
