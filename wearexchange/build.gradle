@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-
+apply plugin: 'com.github.dcendents.android-maven'
 
 ext {
     bintrayRepo = 'maven'
@@ -14,7 +14,7 @@ ext {
     siteUrl = 'https://github.com/RileyGB/WearExchange'
     gitUrl = 'https://github.com/RileyGB/WearExchange.git'
 
-    libraryVersion = '0.4.1'
+    libraryVersion = '0.4.2'
 
     developerId = 'rackerman'
     developerName = 'Riley Ackerman'
@@ -43,7 +43,7 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v4:24.2.1'
-    compile 'com.google.android.gms:play-services-wearable:9.6.0'
+    compile 'com.google.android.gms:play-services-wearable:9.6.1'
     compile 'de.greenrobot:eventbus:2.4.0'
 }
 
